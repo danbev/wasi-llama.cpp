@@ -2,19 +2,19 @@ WASI_SDK_VERSION=20.22ga35b453a8731
 WASI_SDK=${PWD}/wasi-sdk/extracted/wasi-sdk-${WASI_SDK_VERSION}
 LLVM_BIN=${WASI_SDK}/bin
 WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
-TRIPLE=wasm32-wasi
+TRIPLE=wasm32-wasi-threads
 
-WASMTIME=~/work/wasm/wasmtime/target/debug/wasmtime
+WASMTIME=${PWD}/wasmtime/target/release/wasmtime
 
 out/main.wasm: src/main.cpp | out
-	${LLVM_BIN}/clang++ -v  -fno-exceptions --target=${TRIPLE} --sysroot ${WASI_SYSROOT} -s -o $@ $<
+	${LLVM_BIN}/clang++ -v -pthread -Wl,--import-memory,--export-memory,--max-memory=67108864 -fno-exceptions --target=${TRIPLE} --sysroot ${WASI_SYSROOT} -s -o $@ $<
 
 out: 
 	@mkdir $@
 
 .PHONY: run
 run:
-	RUST_BACKTRACE=1 ${WASMTIME} out/main.wasm
+	${WASMTIME} run -W threads -S threads out/main.wasm
 
 .PHONY: clean
 
