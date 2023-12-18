@@ -6,7 +6,7 @@ TRIPLE=wasm32-wasi-threads
 
 WASMTIME=${PWD}/wasmtime/target/release/wasmtime
 
-out/main.wasm: src/main.cpp | out
+out/wasi-threads.wasm: src/wasi-threads.cpp | out
 	${LLVM_BIN}/clang++ -v -pthread -Wl,--import-memory,--export-memory,--max-memory=67108864 -fno-exceptions --target=${TRIPLE} --sysroot ${WASI_SYSROOT} -s -o $@ $<
 
 out: 
@@ -14,10 +14,9 @@ out:
 
 .PHONY: run
 run:
-	${WASMTIME} run  -W threads -S threads --dir ./models out/main.wasm -- models/llama.txt
+	${WASMTIME} run  -W threads -S threads --dir ./models out/wasi-threads.wasm -- models/llama.txt
 
 .PHONY: clean
-
 clean: 
 	@${RM} -rf out
 
@@ -41,3 +40,6 @@ build-wasmtime:
 
 update-llama:
 	git submodule update --remote --merge llama.cpp
+
+build-llama-wasi:
+	@echo "building llama.cpp for wasi"
