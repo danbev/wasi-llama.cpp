@@ -1,4 +1,3 @@
-#include <iostream>
 #include <pthread.h>
 #include <string>
 
@@ -9,7 +8,7 @@
 
 void* thread_entry_point(void* ctx) {
     int id = (int) ctx;
-    std::cout << "in thread: " << id << std::endl;
+    fprintf(stdout, "in thread: %d\n", id);
     return 0;
 }
 
@@ -17,7 +16,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "argc: %d\n", argc);
 
     if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <filename>\n";
+        fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
         return 1;
     }
 
@@ -26,8 +25,8 @@ int main(int argc, char** argv) {
         fprintf(stderr, "error opening input file %s: %s\n", argv[2], strerror(errno));
         exit(1);
     }
+    fprintf(stderr, "opened input file %s\n", argv[2]);
 
-    std::cout << "Hello, wasm32-wasi-threads!" << std::endl;
     void *p = malloc(16);
     free(p);
 
@@ -36,7 +35,7 @@ int main(int argc, char** argv) {
     for (int i = 0; i < NUM_THREADS; i++) {
         int ret = pthread_create(&threads[i], NULL, &thread_entry_point, (void *) i);
         if (ret) {
-            std::cout << "failed to spawn thread "  << strerror(ret) << std::endl;
+            fprintf(stderr, "failed to spawn thread: %s\n", strerror(ret));
         }
     }
     for (int i = 0; i < NUM_THREADS; i++) {
