@@ -38,3 +38,6 @@ clone-wasmtime:
 
 build-wasmtime:
 	cd wasmtime && cargo build --release
+
+update-llama:
+	git submodule update --remote --merge llama.cpp
