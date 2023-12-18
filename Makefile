@@ -47,5 +47,8 @@ build-wasmtime:
 update-llama:
 	git submodule update --remote --merge llama.cpp
 
+update-ggml:
+	git submodule update --remote --merge ggml.cpp
+
 build-llama-wasi:
 	@echo "building llama.cpp for wasi"
