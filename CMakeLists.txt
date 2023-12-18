@@ -28,7 +28,6 @@ add_executable(wasi-threads src/wasi-threads.cpp)
 target_compile_options(wasi-threads PRIVATE -pthread -s -v -fno-exceptions --target=${TRIPLE} --sysroot ${WASI_SYSROOT})
 target_link_options(wasi-threads PRIVATE -pthread -Wl,--import-memory,--export-memory,--max-memory=67108864 --target=${TRIPLE})
 
-
 # Set the target properties for WebAssembly
 set_target_properties(wasi-threads PROPERTIES 
     SUFFIX ".wasm"

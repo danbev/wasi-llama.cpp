@@ -17,9 +17,20 @@ With the above setup/configuration it should be possible to build this project:
 ```console
 $ make out/main.wasm
 ```
+The above will use the [make](./Makefile) file to build the main.wasm module.
+
+This can also be built using [cmake](./CMakeLists.txt):
+```console
+$ make cmake-build
+```
 
 ### Running
-The following command will run the main.wasm module:
+The following command will run the main.wasm module if the project was built
+using make::
 ```console
 $ make run
+```
+And use the following if it was build using cmake:
+```console
+$ make cmake-build-run
 ```
