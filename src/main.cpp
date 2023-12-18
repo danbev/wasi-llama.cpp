@@ -1,5 +1,11 @@
 #include <iostream>
 #include <pthread.h>
+#include <string>
+
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 
 void* thread_entry_point(void* ctx) {
     int id = (int) ctx;
@@ -7,8 +13,23 @@ void* thread_entry_point(void* ctx) {
     return 0;
 }
 
-int main() {
+int main(int argc, char** argv) {
+    fprintf(stderr, "argc: %d\n", argc);
+
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0] << " <filename>\n";
+        return 1;
+    }
+
+    int in = open(argv[2], O_RDONLY);
+    if (in < 0) {
+        fprintf(stderr, "error opening input file %s: %s\n", argv[2], strerror(errno));
+        exit(1);
+    }
+
     std::cout << "Hello, wasm32-wasi-threads!" << std::endl;
+    void *p = malloc(16);
+    free(p);
 
     int const NUM_THREADS = 10;
     pthread_t threads[NUM_THREADS];

@@ -14,7 +14,7 @@ out:
 
 .PHONY: run
 run:
-	${WASMTIME} run -W threads -S threads out/main.wasm
+	${WASMTIME} run  -W threads -S threads --dir ./models out/main.wasm -- models/llama.txt
 
 .PHONY: clean
 
