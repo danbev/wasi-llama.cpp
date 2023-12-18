@@ -16,9 +16,15 @@ out:
 run:
 	${WASMTIME} run  -W threads -S threads --dir ./models out/wasi-threads.wasm -- models/llama.txt
 
+cmake-build:
+	@mkdir -p build
+	@cd build && cmake .. && make
+
+cmake-build-run:
+	${WASMTIME} run  -W threads -S threads --dir ./models build/wasm/wasi-threads.wasm -- models/llama.txt
 .PHONY: clean
 clean: 
-	@${RM} -rf out
+	@${RM} -rf out build
 
 clone-wasi-sdk:
 	@git clone --recursive https://github.com/WebAssembly/wasi-sdk.git
