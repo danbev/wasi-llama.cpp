@@ -21,9 +21,20 @@ run:
 clean: 
 	@${RM} -rf out
 
+clone-wasi-sdk:
+	@git clone --recursive https://github.com/WebAssembly/wasi-sdk.git
+
+build-wasi-sdk:
+	cd wasi-sdk && env NINJA_FLAGS=-v make package
 
 extract-wasi-sdk:
 	@${RM} -rf wasi-sdk/extracted
 	@mkdir -p wasi-sdk/extracted
 	@tar -xf wasi-sdk/dist/wasi-sdk-${WASI_SDK_VERSION}-linux.tar.gz -C wasi-sdk/extracted
 	@tar -xf wasi-sdk/dist/libclang_rt.builtins-wasm32-wasi-${WASI_SDK_VERSION}.tar.gz -C wasi-sdk/extracted/wasi-sdk-${WASI_SDK_VERSION}
+
+clone-wasmtime:
+	@git clone --recursive https://github.com/bytecodealliance/wasmtime
+
+build-wasmtime:
+	cd wasmtime && cargo build --release
