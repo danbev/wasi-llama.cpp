@@ -71,11 +71,13 @@ x tensor backend: 0
 x tensor dimensions: 1
 x tensor data: 0xd6d6c
 ```
-This has been a test-by-step process where I first wanted to make sure that
-threading work, and then I wanted to veriy that I could use ggml with wasi.
+This has been a step-by-step process where I first wanted to make sure that
+threading work, and then I wanted to verify that I could use ggml with wasi.
 Next step is to get llama.cpp working with wasi-threads (I hope).
 
 And use the following if it was build using cmake:
 ```console
 $ make cmake-build-run
 ```
+
+_work in progress..._
