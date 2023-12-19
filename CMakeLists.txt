@@ -10,17 +10,10 @@ if(USE_WASI)
     set(LLVM_BIN "${WASI_SDK}/bin")
     set(TRIPLE "wasm32-wasi-threads")
 
-    # Explicitly set the C++ compiler
     set(CMAKE_CXX_COMPILER "${LLVM_BIN}/clang++")
-
-    # Set the sysroot and toolchain file for the WASI SDK
     set(CMAKE_SYSROOT ${WASI_SYSROOT})
     set(CMAKE_TOOLCHAIN_FILE ${WASI_SDK}/share/cmake/wasi-sdk-pthread.cmake)
-
-    # Set the path to the WASI SDK (modify this to your WASI SDK path)
     set(WASI_SDK_PATH "wasi-sdk")
-
-
 else()
     set(CMAKE_CXX_STANDARD 11)
     add_compile_options(-Wall -O2)
@@ -49,6 +42,6 @@ endif()
 set(GGML_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ggml/include/ggml")
 include_directories(${GGML_INCLUDE_DIR})
 # Set up linking with ggml 
-set(GGML_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ggml/build/src")
+set(GGML_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ggml/build-wasm/src")
 link_directories(${GGML_LIB_PATH})
 target_link_libraries(wasi-threads ${GGML_LIB_PATH}/libggml.a)

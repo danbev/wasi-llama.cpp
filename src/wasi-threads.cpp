@@ -49,5 +49,12 @@ int main(int argc, char** argv) {
     for (int i = 0; i < NUM_THREADS; i++) {
         pthread_join(threads[i], NULL);
     }
+    struct ggml_init_params params = {
+        .mem_size   = 16*1024*1024,
+        .mem_buffer = NULL,
+    };
+    struct ggml_context* ctx = ggml_init(params);
+    printf("ctx mem size: %ld\n", ggml_get_mem_size(ctx));
+    printf("ctx mem used: %ld\n", ggml_used_mem(ctx));
     return 0;
 }

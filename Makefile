@@ -1,5 +1,6 @@
 WASI_SDK_VERSION=20.22ga35b453a8731
 WASI_SDK=${PWD}/wasi-sdk/extracted/wasi-sdk-${WASI_SDK_VERSION}
+CMAKE_TOOLCHAIN_FILE=${WASI_SDK}/share/cmake/wasi-sdk-pthread.cmake
 LLVM_BIN=${WASI_SDK}/bin
 WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
 TRIPLE=wasm32-wasi-threads
@@ -8,7 +9,10 @@ WASMTIME=${PWD}/wasmtime/target/release/wasmtime
 
 out/wasi-threads.wasm: src/wasi-threads.cpp | out
 	${LLVM_BIN}/clang++ -v -pthread \
-		-Lggml/build/src -lggml -Iggml/include/ggml \
+		-Lggml/build-wasm/src -Iggml/include/ggml \
+		-lggml \
+		-lwasi-emulated-signal \
+		-lwasi-emulated-process-clocks \
 		-Wl,--import-memory,--export-memory,--max-memory=67108864 \
 		-fno-exceptions --target=${TRIPLE} --sysroot ${WASI_SYSROOT} \
 	       	-o $@ $<
@@ -64,6 +68,11 @@ update-ggml:
 
 build-ggml-wasi:
 	@echo "building ggml as a wasi module"
-	@rm -rf build/ggml/build
-	@mkdir -p ggml/build
-	@cd ggml/build && cmake -DBUILD_SHARED_LIBS=OFF .. && make
+	@rm -rf build/ggml/build-wasm
+	@mkdir -p ggml/build-wasm
+	@cd ggml/build-wasm && cmake -DGGML_WASI=ON \
+		-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
+		-DBUILD_SHARED_LIBS=OFF \
+		-DGGML_BUILD_TESTS=OFF \
+		-DGGML_BUILD_EXAMPLES=OFF \
+		.. && make
