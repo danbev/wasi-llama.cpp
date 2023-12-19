@@ -56,5 +56,11 @@ int main(int argc, char** argv) {
     struct ggml_context* ctx = ggml_init(params);
     printf("ctx mem size: %ld\n", ggml_get_mem_size(ctx));
     printf("ctx mem used: %ld\n", ggml_used_mem(ctx));
+
+    struct ggml_tensor* x = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 1);
+    printf("x tensor type: %s\n", ggml_type_name(x->type));
+    printf("x tensor backend: %d \n", x->backend);
+    printf("x tensor dimensions: %d\n", x->n_dims);
+    printf("x tensor data: %p\n", x->data);
     return 0;
 }
