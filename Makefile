@@ -40,7 +40,8 @@ cmake-run:
 
 .PHONY: clean
 clean: 
-	@${RM} -rf out build
+	@${RM} -rf out build ggml/build-wasm 
+	@cd ggml && git checkout CMakeLists.txt
 
 clone-wasi-sdk:
 	@git clone --recursive https://github.com/WebAssembly/wasi-sdk.git
