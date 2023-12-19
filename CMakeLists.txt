@@ -19,6 +19,8 @@ if(USE_WASI)
 
     # Set the path to the WASI SDK (modify this to your WASI SDK path)
     set(WASI_SDK_PATH "wasi-sdk")
+
+
 else()
     set(CMAKE_CXX_STANDARD 11)
     add_compile_options(-Wall -O2)
@@ -40,5 +42,13 @@ if(USE_WASI)
         SUFFIX ".wasm"
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/wasm
     )
+
 endif()
 
+# Set ggml include directory
+set(GGML_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ggml/include/ggml")
+include_directories(${GGML_INCLUDE_DIR})
+# Set up linking with ggml 
+set(GGML_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ggml/build/src")
+link_directories(${GGML_LIB_PATH})
+target_link_libraries(wasi-threads ${GGML_LIB_PATH}/libggml.a)

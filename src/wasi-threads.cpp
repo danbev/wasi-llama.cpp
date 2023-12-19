@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include "ggml.h"
+
 void* thread_entry_point(void* ctx) {
     int id = reinterpret_cast<intptr_t>(ctx);
     fprintf(stdout, "in thread: %d\n", id);

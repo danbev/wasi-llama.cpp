@@ -7,7 +7,11 @@ TRIPLE=wasm32-wasi-threads
 WASMTIME=${PWD}/wasmtime/target/release/wasmtime
 
 out/wasi-threads.wasm: src/wasi-threads.cpp | out
-	${LLVM_BIN}/clang++ -v -pthread -Wl,--import-memory,--export-memory,--max-memory=67108864 -fno-exceptions --target=${TRIPLE} --sysroot ${WASI_SYSROOT} -o $@ $<
+	${LLVM_BIN}/clang++ -v -pthread \
+		-Lggml/build/src -lggml -Iggml/include/ggml \
+		-Wl,--import-memory,--export-memory,--max-memory=67108864 \
+		-fno-exceptions --target=${TRIPLE} --sysroot ${WASI_SYSROOT} \
+	       	-o $@ $<
 
 out: 
 	@mkdir $@
@@ -58,5 +62,8 @@ update-llama:
 update-ggml:
 	git submodule update --remote --merge ggml.cpp
 
-build-llama-wasi:
-	@echo "building llama.cpp for wasi"
+build-ggml-wasi:
+	@echo "building ggml as a wasi module"
+	@rm -rf build/ggml/build
+	@mkdir -p ggml/build
+	@cd ggml/build && cmake -DBUILD_SHARED_LIBS=OFF .. && make
