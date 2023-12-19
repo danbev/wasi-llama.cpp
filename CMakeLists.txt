@@ -32,7 +32,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -v")
 add_executable(wasi-threads src/wasi-threads.cpp)
 
 if(USE_WASI)
-    target_compile_options(wasi-threads PRIVATE -pthread -s -v -fno-exceptions --target=${TRIPLE} --sysroot ${WASI_SYSROOT})
+    target_compile_options(wasi-threads PRIVATE -pthread -v -fno-exceptions --target=${TRIPLE} --sysroot ${WASI_SYSROOT})
     target_link_options(wasi-threads PRIVATE -pthread -Wl,--import-memory,--export-memory,--max-memory=67108864 --target=${TRIPLE})
 
     # Set the target properties for WebAssembly

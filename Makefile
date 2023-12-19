@@ -7,7 +7,7 @@ TRIPLE=wasm32-wasi-threads
 WASMTIME=${PWD}/wasmtime/target/release/wasmtime
 
 out/wasi-threads.wasm: src/wasi-threads.cpp | out
-	${LLVM_BIN}/clang++ -v -pthread -Wl,--import-memory,--export-memory,--max-memory=67108864 -fno-exceptions --target=${TRIPLE} --sysroot ${WASI_SYSROOT} -s -o $@ $<
+	${LLVM_BIN}/clang++ -v -pthread -Wl,--import-memory,--export-memory,--max-memory=67108864 -fno-exceptions --target=${TRIPLE} --sysroot ${WASI_SYSROOT} -o $@ $<
 
 out: 
 	@mkdir $@
