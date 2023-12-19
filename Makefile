@@ -16,12 +16,20 @@ out:
 run:
 	${WASMTIME} run  -W threads -S threads --dir ./models out/wasi-threads.wasm -- models/llama.txt
 
+cmake-build-wasi:
+	@mkdir -p build
+	@cd build && cmake -DUSE_WASI=ON .. && make
+
+cmake-build-run-wasi:
+	${WASMTIME} run  -W threads -S threads --dir ./models build/wasm/wasi-threads.wasm -- models/llama.txt
+
 cmake-build:
 	@mkdir -p build
-	@cd build && cmake .. && make
+	@cd build && cmake -DUSE_WASI=OFF .. && make
 
 cmake-build-run:
-	${WASMTIME} run  -W threads -S threads --dir ./models build/wasm/wasi-threads.wasm -- models/llama.txt
+	build/wasi-threads build/wasi-threads models/llama.txt
+
 .PHONY: clean
 clean: 
 	@${RM} -rf out build

@@ -1,5 +1,6 @@
 #include <pthread.h>
-#include <string>
+#include <string.h>
+#include <cstdlib>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -7,7 +8,7 @@
 #include <errno.h>
 
 void* thread_entry_point(void* ctx) {
-    int id = (int) ctx;
+    int id = reinterpret_cast<intptr_t>(ctx);
     fprintf(stdout, "in thread: %d\n", id);
     return 0;
 }
@@ -33,7 +34,8 @@ int main(int argc, char** argv) {
     int const NUM_THREADS = 10;
     pthread_t threads[NUM_THREADS];
     for (int i = 0; i < NUM_THREADS; i++) {
-        int ret = pthread_create(&threads[i], NULL, &thread_entry_point, (void *) i);
+        int ret = pthread_create(&threads[i], NULL, &thread_entry_point, reinterpret_cast<void*>(static_cast<intptr_t>(i)));
+
         if (ret) {
             fprintf(stderr, "failed to spawn thread: %s\n", strerror(ret));
         }
