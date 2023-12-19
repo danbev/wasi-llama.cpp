@@ -68,6 +68,8 @@ update-ggml:
 
 build-ggml-wasi:
 	@echo "building ggml as a wasi module"
+	@echo "Overwriting ggml/CMakeLists.txt (this will be removed in the future is accepted upstream)"
+	@cp GGML-CMakeLists.txt ggml/CMakeLists.txt
 	@rm -rf build/ggml/build-wasm
 	@mkdir -p ggml/build-wasm
 	@cd ggml/build-wasm && cmake -DGGML_WASI=ON \
