@@ -34,7 +34,11 @@ int main(int argc, char** argv) {
     int const NUM_THREADS = 10;
     pthread_t threads[NUM_THREADS];
     for (int i = 0; i < NUM_THREADS; i++) {
-        int ret = pthread_create(&threads[i], NULL, &thread_entry_point, reinterpret_cast<void*>(static_cast<intptr_t>(i)));
+        int ret = pthread_create(
+                      &threads[i],
+                      NULL,
+                      &thread_entry_point,
+                      reinterpret_cast<void*>(static_cast<intptr_t>(i)));
 
         if (ret) {
             fprintf(stderr, "failed to spawn thread: %s\n", strerror(ret));
