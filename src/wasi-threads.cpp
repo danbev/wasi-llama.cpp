@@ -14,10 +14,9 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
         return 1;
     }
-    //std::string model_path = argv[2];
+    std::string model_path = argv[2];
     llama_model_params model_params = llama_model_default_params();
 
-    std::string model_path = "models/llama-2-7b-chat.Q4_0.gguf";
     fprintf(stdout, "llama.cpp example using model: %s\n", model_path.c_str());
 
     /*
