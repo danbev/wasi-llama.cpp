@@ -2,3 +2,4 @@ out
 wasi-sdk
 wasmtime
 build
+models
