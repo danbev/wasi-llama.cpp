@@ -9,11 +9,12 @@ WASMTIME=${PWD}/wasmtime/target/release/wasmtime
 
 out/wasi-threads.wasm: src/wasi-threads.cpp | out
 	${LLVM_BIN}/clang++ -v -pthread \
-		-Lggml/build-wasm/src -Iggml/include/ggml \
-		-lggml \
 		-lwasi-emulated-signal \
 		-lwasi-emulated-process-clocks \
-		-Wl,--import-memory,--export-memory,--max-memory=67108864 \
+		-Lllama.cpp/build-wasm -Illama.cpp \
+		-lllama \
+		-Wl,--import-memory,--export-memory \
+		-Wl,--initial-memory=4000055296,--max-memory=4294967296,--no-check-features \
 		-fno-exceptions --target=${TRIPLE} --sysroot ${WASI_SYSROOT} \
 	       	-o $@ $<
 
@@ -22,14 +23,18 @@ out:
 
 .PHONY: run
 run:
-	${WASMTIME} run  -W threads -S threads --dir ./models out/wasi-threads.wasm -- models/llama.txt
+	env WASMTIME_BACKTRACE_DETAILS=1 ${WASMTIME} run  -W threads -S threads \
+        --dir ./models out/wasi-threads.wasm -- \
+        models/llama-2-7b-chat.Q4_0.gguf
 
 cmake-build-wasi:
 	@mkdir -p build
 	@cd build && cmake -DUSE_WASI=ON .. && make
 
 cmake-run-wasi:
-	${WASMTIME} run  -W threads -S threads --dir ./models build/wasm/wasi-threads.wasm -- models/llama.txt
+	${WASMTIME} run  -W threads -S threads \
+        --dir ./models build/wasm/wasi-threads.wasm -- \
+        models/llama-2-7b-chat.Q4_0.gguf
 
 cmake-build:
 	@mkdir -p build
@@ -64,6 +69,17 @@ build-wasmtime:
 update-llama:
 	git submodule update --remote --merge llama.cpp
 
+build-llama-wasi:
+	@echo "building llama.cpp as a wasi module"
+	@rm -rf build/llama.cpp/build-wasm
+	@mkdir -p llama.cpp/build-wasm
+	@cd llama.cpp/build-wasm && cmake -DLLAMA_WASI=ON \
+		-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
+		-DBUILD_SHARED_LIBS=OFF \
+		-DLLAMA_BUILD_TESTS=OFF \
+		-DLLAMA_BUILD_EXAMPLES=OFF \
+		.. && make
+
 update-ggml:
 	git submodule update --remote --merge ggml.cpp
 
@@ -79,3 +95,9 @@ build-ggml-wasi:
 		-DGGML_BUILD_TESTS=OFF \
 		-DGGML_BUILD_EXAMPLES=OFF \
 		.. && make
+
+.PHONY: download-model
+download-model:
+	@mkdir -p models
+	@cd models && curl -LO https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGUF/resolve/5db6994dca7288297c59693b5e27b62f22a54e1f/llama-2-7b-chat.Q4_0.gguf
+

@@ -6,61 +6,74 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-
-#include "ggml.h"
-
-void* thread_entry_point(void* ctx) {
-    int id = reinterpret_cast<intptr_t>(ctx);
-    fprintf(stdout, "in thread: %d\n", id);
-    return 0;
-}
+#include "llama.h"
+#include <string>
 
 int main(int argc, char** argv) {
-    fprintf(stderr, "argc: %d\n", argc);
-
     if (argc < 3) {
         fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
         return 1;
     }
+    //std::string model_path = argv[2];
+    llama_model_params model_params = llama_model_default_params();
 
-    int in = open(argv[2], O_RDONLY);
-    if (in < 0) {
-        fprintf(stderr, "error opening input file %s: %s\n", argv[2], strerror(errno));
-        exit(1);
+    std::string model_path = "models/llama-2-7b-chat.Q4_0.gguf";
+    fprintf(stdout, "llama.cpp example using model: %s\n", model_path.c_str());
+
+    /*
+    // Try opening the file using the same code that llama.cpp uses which is
+    // just here for easier debugging/testing.
+    FILE* fp = std::fopen(model_path.c_str(), "rb");
+    if (fp == NULL) {
+        fprintf(stderr, "failed to open %s: %s", model_path.c_str(), strerror(errno));
     }
-    fprintf(stderr, "opened input file %s\n", argv[2]);
-
-    void *p = malloc(16);
-    free(p);
-
-    int const NUM_THREADS = 10;
-    pthread_t threads[NUM_THREADS];
-    for (int i = 0; i < NUM_THREADS; i++) {
-        int ret = pthread_create(
-                      &threads[i],
-                      NULL,
-                      &thread_entry_point,
-                      reinterpret_cast<void*>(static_cast<intptr_t>(i)));
-
-        if (ret) {
-            fprintf(stderr, "failed to spawn thread: %s\n", strerror(ret));
-        }
+    int ret = std::fseek(fp, (long) 0, SEEK_END);
+    fprintf(stdout, "fseek returned %d\n", ret);
+    ret = std::ftell(fp);
+    if (ret == -1) {
+        fprintf(stderr, "ftell will fail on wasi: %s\n", strerror(errno));
+        // std::ftell will fail on wasm/wasi as it is a 32-bit platform 
+        // and if the model size if larger than 2GB, it will fail. The
+        // alternative is to use ftello64 which is not available on wasi.
+        // I've added a macro guard for this in llama.cpp.
     }
-    for (int i = 0; i < NUM_THREADS; i++) {
-        pthread_join(threads[i], NULL);
+    ret = ftello64(fp);
+    if (ret == -1) {
+        fprintf(stderr, "ftell failed: %s\n", strerror(errno));
+        exit(2);
     }
-    struct ggml_init_params params = {
-        .mem_size   = 16*1024*1024,
-        .mem_buffer = NULL,
-    };
-    struct ggml_context* ctx = ggml_init(params);
-    printf("ctx mem size: %ld\n", ggml_get_mem_size(ctx));
-    printf("ctx mem used: %ld\n", ggml_used_mem(ctx));
+    */
 
-    struct ggml_tensor* x = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 1);
-    printf("x tensor type: %s\n", ggml_type_name(x->type));
-    printf("x tensor backend: %d \n", x->backend);
-    printf("x tensor dimensions: %d\n", x->n_dims);
-    printf("x tensor data: %p\n", x->data);
+    std::string prompt = "What is LoRA?";
+ 
+    bool numa = false;
+    llama_backend_init(numa);
+
+    llama_model* model = llama_load_model_from_file(model_path.c_str(), model_params);
+    if (model == NULL) {
+        fprintf(stderr , "%s: error: failed to to load model %s\n" , __func__, model_path.c_str());
+        return 1;
+    }
+    fprintf(stdout, "model loaded\n");
+
+    /*
+    llama_context_params ctx_params = llama_context_default_params();
+    ctx_params.seed  = 1234;
+    ctx_params.n_ctx = 1024;
+    ctx_params.n_threads = 4;
+    ctx_params.n_threads_batch = 4;
+    ctx_params.rope_scaling_type = LLAMA_ROPE_SCALING_LINEAR;
+
+    llama_context * ctx = llama_new_context_with_model(model, ctx_params);
+    if (ctx == NULL) {
+        fprintf(stderr , "%s: error: failed to create the llama_context\n" , __func__);
+        return 1;
+    }
+
+    llama_free(ctx);
+    */
+    llama_free_model(model);
+    llama_backend_free();
+
     return 0;
 }
