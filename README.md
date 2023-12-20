@@ -17,7 +17,7 @@ $ make clone-wasmtime build-wasmtime
 ```
 
 ### Building ggml with wasi-threads support
-The ggml c library is includes as a git submodule so make sure to run the
+The ggml c library is included as a git submodule so make sure to run the
 following command if it is not already cloned:
 ```console
 $ git submodule update --init --recursive
