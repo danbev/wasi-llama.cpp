@@ -33,8 +33,8 @@ reason this works.
 *So is the answer to just use wasi-nn?*  
 That would work but I think but there might be value in having a pure wasm
 implementation for llama.cpp like this project is trying to do. The reason for
-with the fast pace of development and research, which llama.cpp is very fast
-installed adopting, for these updates to reach the end user the wasm runtime
+this is with the fast pace of development and research, which llama.cpp is very
+fast at adopting, for these updates to reach the end user the wasm runtime
 will needed to apply those updates, release a new version, and the end user
 would also need to update their environment to use that new version. Perhaps
 there is room for both approaches?
