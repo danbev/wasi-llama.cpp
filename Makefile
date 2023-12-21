@@ -25,7 +25,7 @@ out:
 run:
 	env WASMTIME_BACKTRACE_DETAILS=1 ${WASMTIME} run  -W threads -S threads \
         --dir ./models out/wasi-threads.wasm -- \
-        models/llama-2-7b.Q2_K.gguf
+	models/llama-2-7b.Q2_K.gguf "What is LoRA?"
 
 cmake-build-wasi:
 	@mkdir -p build
@@ -34,7 +34,7 @@ cmake-build-wasi:
 cmake-run-wasi:
 	${WASMTIME} run  -W threads -S threads \
         --dir ./models build/wasm/wasi-threads.wasm -- \
-        models/llama-2-7b.Q2_K.gguf
+        models/llama-2-7b.Q2_K.gguf "What is LoRA?"
 
 cmake-build:
 	@mkdir -p build
