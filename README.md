@@ -21,16 +21,16 @@ which is under 4GB at runtime and that is why it works. But this is just a base
 model a chat model would be larger and would probably not work. We would need
 support for [wasm64-wasi] for this to work with larger models.
 
-So how can the wasi-nn examples that I have seen work with larger model sizes
-then?  
+*So how can the wasi-nn examples that I have seen work with larger model sizes
+then?*    
 Well I believe the answer to that is that they are extensions/plugins/part of
 the wasm runtime implementation used, like wasmtime or wasmedge. So the users
 code interacts with the wasi-nn API but the actual implementation is not part of
 users wasm code. The implementation for wasmedge is called a plugin and the
-runtime does on have the memory restrictions that wasm32 does which is the
+runtime does not have the memory restrictions that wasm32 does which is the
 reason this works.
 
-So is the answer to just use wasi-nn?  
+*So is the answer to just use wasi-nn?*  
 That would work but I think but there might be value in having a pure wasm
 implementation for llama.cpp like this project is trying to do. The reason for
 with the fast pace of development and research, which llama.cpp is very fast
