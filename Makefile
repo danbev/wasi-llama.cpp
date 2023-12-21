@@ -25,7 +25,7 @@ out:
 run:
 	env WASMTIME_BACKTRACE_DETAILS=1 ${WASMTIME} run  -W threads -S threads \
         --dir ./models out/wasi-threads.wasm -- \
-        models/llama-2-7b-chat.Q4_0.gguf
+        models/llama-2-7b.Q2_K.gguf
 
 cmake-build-wasi:
 	@mkdir -p build
@@ -34,7 +34,7 @@ cmake-build-wasi:
 cmake-run-wasi:
 	${WASMTIME} run  -W threads -S threads \
         --dir ./models build/wasm/wasi-threads.wasm -- \
-        models/llama-2-7b-chat.Q4_0.gguf
+        models/llama-2-7b.Q2_K.gguf
 
 cmake-build:
 	@mkdir -p build
@@ -99,5 +99,4 @@ build-ggml-wasi:
 .PHONY: download-model
 download-model:
 	@mkdir -p models
-	@cd models && curl -LO https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGUF/resolve/5db6994dca7288297c59693b5e27b62f22a54e1f/llama-2-7b-chat.Q4_0.gguf
-
+	@cd models && curl -LO https://huggingface.co/TheBloke/Llama-2-7B-GGUF/resolve/main/llama-2-7b.Q2_K.gguf

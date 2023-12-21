@@ -1,0 +1,157 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e3cd43a..fbdc3c3 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -101,6 +101,28 @@ option(LLAMA_BUILD_TESTS                     "llama: build tests"    ${LLAMA_STA
+ option(LLAMA_BUILD_EXAMPLES                  "llama: build examples" ${LLAMA_STANDALONE})
+ option(LLAMA_BUILD_SERVER                    "llama: build server example"                      ON)
+ 
++
++option(LLAMA_WASI "llama: produce a wasm module" OFF)
++if(LLAMA_WASI)
++    message(STATUS "Building for WASI")
++    set(WASI_SDK_VERSION "20.22ga35b453a8731")
++    set(WASI_SDK "${CMAKE_CURRENT_SOURCE_DIR}/../wasi-sdk/extracted/wasi-sdk-${WASI_SDK_VERSION}")
++    set(WASI_SYSROOT "${WASI_SDK}/share/wasi-sysroot")
++    set(LLVM_BIN "${WASI_SDK}/bin")
++    set(CMAKE_TOOLCHAIN_FILE ${WASI_SDK}/share/cmake/wasi-sdk-pthread.cmake)
++    set(BUILD_SHARED_LIBS_DEFAULT OFF)
++
++    add_compile_definitions(_WASI_EMULATED_SIGNAL)
++    add_compile_definitions(_WASI_EMULATED_PROCESS_CLOCKS ON)
++
++    set(CMAKE_SYSROOT ${WASI_SYSROOT})
++
++    add_compile_definitions(LLAMA_WASI)
++
++    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
++
++endif()
++
+ # Required for relocatable CMake package
+ include(${CMAKE_CURRENT_SOURCE_DIR}/scripts/build-info.cmake)
+ 
+@@ -845,7 +867,10 @@ endif()
+ # programs, examples and tests
+ #
+ 
+-add_subdirectory(common)
++if (LLAMA_BUILD_TESTS OR LLAMA_BUILD_EXAMPLES)
++    add_subdirectory(programs)	
++endif()
++#add_subdirectory(common)
+ 
+ if (LLAMA_BUILD_TESTS AND NOT CMAKE_JS_VERSION)
+     include(CTest)
+diff --git a/llama.cpp b/llama.cpp
+index d6d575f..4a8eed3 100644
+--- a/llama.cpp
++++ b/llama.cpp
+@@ -1,3 +1,18 @@
++#ifdef LLAMA_WASI
++#include <stdlib.h>
++#include <stdio.h>
++extern "C" {
++   void __cxa_allocate_exception() {
++       fprintf(stderr, "__cxa_allocate_exception is not implemented for WASI.\n");
++       exit(-22);
++   }
++
++   void __cxa_throw() {
++       fprintf(stderr, "__cxa_throw is not implemented for WASI.\n");
++       exit(-23);
++   }
++}
++#endif
+ #define LLAMA_API_INTERNAL
+ #include "llama.h"
+ 
+@@ -154,12 +169,14 @@ static bool is_float_close(float a, float b, float abs_tol) {
+ #include <hbwmalloc.h>
+ #endif
+ 
++#ifndef LLAMA_WASI
+ static void zeros(std::ofstream & file, size_t n) {
+     char zero = 0;
+     for (size_t i = 0; i < n; ++i) {
+         file.write(&zero, 1);
+     }
+ }
++#endif
+ 
+ LLAMA_ATTRIBUTE_FORMAT(1, 2)
+ static std::string format(const char * fmt, ...) {
+@@ -752,6 +769,7 @@ struct llama_buffer {
+     bool fallback = false;
+ 
+     void resize(size_t n) {
++        fprintf(stderr, "llama_buffer: resizing to %zu Mb\n", n/(1024*1024));
+         llama_host_free(data);
+ 
+         data = llama_host_malloc(n);
+@@ -761,6 +779,7 @@ struct llama_buffer {
+         } else {
+             fallback = false;
+         }
++        fprintf(stderr, "llama_buffer: resizing error: %s\n", strerror(errno));
+ 
+         GGML_ASSERT(data);
+         size = n;
+@@ -785,6 +804,7 @@ struct llama_file {
+     size_t size;
+ 
+     llama_file(const char * fname, const char * mode) {
++        fprintf(stderr, "llama_file: opening %s\n", fname);
+         fp = std::fopen(fname, mode);
+         if (fp == NULL) {
+             throw std::runtime_error(format("failed to open %s: %s", fname, strerror(errno)));
+@@ -797,6 +817,8 @@ struct llama_file {
+     size_t tell() const {
+ #ifdef _WIN32
+         __int64 ret = _ftelli64(fp);
++#elif LLAMA_WASI
++        long ret = ftello64(fp);
+ #else
+         long ret = std::ftell(fp);
+ #endif
+@@ -807,6 +829,8 @@ struct llama_file {
+     void seek(size_t offset, int whence) const {
+ #ifdef _WIN32
+         int ret = _fseeki64(fp, (__int64) offset, whence);
++#elif LLAMA_WASI
++        int ret = fseeko64(fp, (off64_t) offset, whence);
+ #else
+         int ret = std::fseek(fp, (long) offset, whence);
+ #endif
+@@ -8358,6 +8382,7 @@ static ggml_type get_k_quant_type(quantize_state_internal & qs, ggml_type new_ty
+     return new_type;
+ }
+ 
++#ifndef LLAMA_WASI
+ static void llama_model_quantize_internal(const std::string & fname_inp, const std::string & fname_out, const llama_model_quantize_params * params) {
+     ggml_type quantized_type;
+     llama_ftype ftype = params->ftype;
+@@ -8640,6 +8665,7 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
+                 __func__, qs.n_fallback, qs.n_k_quantized + qs.n_fallback);
+     }
+ }
++#endif
+ 
+ static int llama_apply_lora_from_file_internal(
+     const struct llama_model & model, const char * path_lora, float scale, const char * path_base_model, int n_threads
+@@ -9379,6 +9405,7 @@ struct ggml_tensor * llama_get_model_tensor(struct llama_model * model, const ch
+     return ggml_get_tensor(model->ctx, name);
+ }
+ 
++#ifndef LLAMA_WASI
+ int llama_model_quantize(
+         const char * fname_inp,
+         const char * fname_out,
+@@ -9391,6 +9418,7 @@ int llama_model_quantize(
+         return 1;
+     }
+ }
++#endif
+ 
+ int llama_apply_lora_from_file(struct llama_context * ctx, const char * path_lora, float scale, const char * path_base_model, int n_threads) {
+     try {

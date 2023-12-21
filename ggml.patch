@@ -1,0 +1,38 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ba0a745..8247488 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -5,6 +5,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS "on")
+ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+ 
++
+ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+     set(GGML_STANDALONE ON)
+     include(cmake/GitVars.cmake)
+@@ -88,6 +89,25 @@ endif()
+ #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
+ #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=native")
+ 
++option(GGML_WASI "ggml: produce a wasm module" OFF)
++if(GGML_WASI)
++    message(STATUS "Building for WASI")
++    set(WASI_SDK_VERSION "20.22ga35b453a8731")
++    set(WASI_SDK "${CMAKE_CURRENT_SOURCE_DIR}/../wasi-sdk/extracted/wasi-sdk-${WASI_SDK_VERSION}")
++    set(WASI_SYSROOT "${WASI_SDK}/share/wasi-sysroot")
++    set(LLVM_BIN "${WASI_SDK}/bin")
++    set(CMAKE_TOOLCHAIN_FILE ${WASI_SDK}/share/cmake/wasi-sdk-pthread.cmake)
++    #set(TRIPLE "wasm32-wasi-threads")
++    set(BUILD_SHARED_LIBS_DEFAULT OFF)
++
++    add_compile_definitions(_WASI_EMULATED_SIGNAL)
++    add_compile_definitions(_WASI_EMULATED_PROCESS_CLOCKS ON)
++
++    #set(CMAKE_CXX_COMPILER "${LLVM_BIN}/clang++")
++    set(CMAKE_SYSROOT ${WASI_SYSROOT})
++    #set(WASI_SDK_PATH "wasi-sdk")
++endif()
++
+ # warning flags
+ 
+ if (GGML_ALL_WARNINGS)
